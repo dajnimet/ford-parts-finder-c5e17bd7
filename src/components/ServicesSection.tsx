@@ -1,11 +1,11 @@
-import { Wrench, Car, Truck, Settings, CircleDot, ArrowRight } from "lucide-react";
+import { Car, Truck, Settings, ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const services = [
   {
     icon: Car,
     title: "Náhradní díly Ford",
-    description: "Nové i použité díly na osobní a dodávkové vozy Ford. Motory, převodovky, poloosy, startéry, alternátory.",
+    description: "Nové i použité díly na osobní a dodávkové vozy Ford. Prohlédněte si katalog a pošlete poptávku.",
     link: "/nahradni-dily",
   },
   {
@@ -16,15 +16,9 @@ const services = [
   },
   {
     icon: Settings,
-    title: "Autoservis",
-    description: "Kompletní servisní služby pro váš automobil. Diagnostika, opravy motorů, podvozku a další.",
-    link: "/autoservis",
-  },
-  {
-    icon: CircleDot,
-    title: "Pneuservis",
-    description: "Přezutí pneumatik, vyvažování kol, opravy defektů. Osobní i dodávkové vozy.",
-    link: "/pneuservis",
+    title: "Autoservis & Pneuservis",
+    description: "Kompletní servisní služby - opravy motorů, podvozku, přezutí pneumatik, vyvažování a další.",
+    link: "/servis",
   },
 ];
 
@@ -41,7 +35,7 @@ const ServicesSection = () => {
           </p>
         </div>
         
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {services.map((service, index) => {
             const content = (
               <>
