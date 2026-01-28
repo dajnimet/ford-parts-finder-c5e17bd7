@@ -1,25 +1,30 @@
-import { Wrench, Car, Truck, Settings } from "lucide-react";
+import { Wrench, Car, Truck, Settings, CircleDot, ArrowRight } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const services = [
   {
     icon: Car,
     title: "Náhradní díly Ford",
     description: "Nové i použité díly na osobní a dodávkové vozy Ford. Motory, převodovky, poloosy, startéry, alternátory.",
+    link: "/nahradni-dily",
   },
   {
     icon: Truck,
     title: "Ekologická likvidace",
     description: "Kompletní vyřízení ekologické likvidace vozidel všech značek - osobní, nákladní i stroje.",
+    link: null,
   },
   {
     icon: Settings,
-    title: "Výkup autovraků",
-    description: "Odtah a výkup autovraků všech značek. Rychlé a férové jednání.",
+    title: "Autoservis",
+    description: "Kompletní servisní služby pro váš automobil. Diagnostika, opravy motorů, podvozku a další.",
+    link: "/autoservis",
   },
   {
-    icon: Wrench,
-    title: "Autoservis & Pneuservis",
-    description: "Kompletní servisní služby pro váš automobil včetně přezutí pneumatik.",
+    icon: CircleDot,
+    title: "Pneuservis",
+    description: "Přezutí pneumatik, vyvažování kol, opravy defektů. Osobní i dodávkové vozy.",
+    link: "/pneuservis",
   },
 ];
 
@@ -37,22 +42,44 @@ const ServicesSection = () => {
         </div>
         
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {services.map((service, index) => (
-            <div
-              key={index}
-              className="card-industrial group"
-            >
-              <div className="w-14 h-14 rounded-lg bg-primary/10 flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
-                <service.icon className="w-7 h-7 text-primary" />
+          {services.map((service, index) => {
+            const content = (
+              <>
+                <div className="w-14 h-14 rounded-lg bg-primary/10 flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
+                  <service.icon className="w-7 h-7 text-primary" />
+                </div>
+                <h3 className="text-xl font-display mb-3 text-foreground">
+                  {service.title}
+                </h3>
+                <p className="text-muted-foreground text-sm leading-relaxed mb-4">
+                  {service.description}
+                </p>
+                {service.link && (
+                  <span className="inline-flex items-center gap-2 text-primary text-sm font-medium group-hover:gap-3 transition-all">
+                    Více informací <ArrowRight className="w-4 h-4" />
+                  </span>
+                )}
+              </>
+            );
+
+            if (service.link) {
+              return (
+                <Link
+                  key={index}
+                  to={service.link}
+                  className="card-industrial group cursor-pointer"
+                >
+                  {content}
+                </Link>
+              );
+            }
+
+            return (
+              <div key={index} className="card-industrial group">
+                {content}
               </div>
-              <h3 className="text-xl font-display mb-3 text-foreground">
-                {service.title}
-              </h3>
-              <p className="text-muted-foreground text-sm leading-relaxed">
-                {service.description}
-              </p>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </section>
