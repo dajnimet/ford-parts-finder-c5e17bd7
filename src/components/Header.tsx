@@ -5,10 +5,9 @@ import { Button } from "@/components/ui/button";
 
 const navigation = [
   { name: "Domů", href: "/" },
-  { name: "Náhradní díly Ford", href: "/nahradni-dily" },
+  { name: "Náhradní díly", href: "/nahradni-dily" },
+  { name: "Servis", href: "/servis" },
   { name: "Modely Ford", href: "/modely" },
-  { name: "Autoservis", href: "/autoservis" },
-  { name: "Pneuservis", href: "/pneuservis" },
 ];
 
 const Header = () => {
