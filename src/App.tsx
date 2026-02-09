@@ -7,6 +7,8 @@ import Index from "./pages/Index";
 import NahradniDily from "./pages/NahradniDily";
 import Servis from "./pages/Servis";
 import Models from "./pages/Models";
+import Auth from "./pages/Auth";
+import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -22,6 +24,8 @@ const App = () => (
           <Route path="/nahradni-dily" element={<NahradniDily />} />
           <Route path="/servis" element={<Servis />} />
           <Route path="/modely" element={<Models />} />
+          <Route path="/auth" element={<Auth />} />
+          <Route path="/admin" element={<Admin />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
