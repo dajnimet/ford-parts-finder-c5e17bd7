@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Menu, X, Phone } from "lucide-react";
+import { Menu, X, Phone, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { supabase } from "@/integrations/supabase/client";
 
 const navigation = [
   { name: "Domů", href: "/" },
@@ -12,7 +13,14 @@ const navigation = [
 
 const Header = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const location = useLocation();
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => setIsLoggedIn(!!data.session));
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_, session) => setIsLoggedIn(!!session));
+    return () => subscription.unsubscribe();
+  }, []);
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border">
@@ -38,6 +46,17 @@ const Header = () => {
                 {item.name}
               </Link>
             ))}
+            {isLoggedIn && (
+              <Link
+                to="/admin"
+                className={`text-sm font-medium transition-colors hover:text-primary ${
+                  location.pathname === "/admin" ? "text-primary" : "text-muted-foreground"
+                }`}
+              >
+                <Settings className="w-4 h-4 inline mr-1" />
+                Admin
+              </Link>
+            )}
           </nav>
 
           {/* CTA Button */}
@@ -81,6 +100,18 @@ const Header = () => {
                   {item.name}
                 </Link>
               ))}
+              {isLoggedIn && (
+                <Link
+                  to="/admin"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={`text-lg font-medium transition-colors hover:text-primary ${
+                    location.pathname === "/admin" ? "text-primary" : "text-muted-foreground"
+                  }`}
+                >
+                  <Settings className="w-5 h-5 inline mr-2" />
+                  Admin
+                </Link>
+              )}
               <Button asChild className="gap-2 mt-2">
                 <a href="tel:+420603766719">
                   <Phone className="w-4 h-4" />
