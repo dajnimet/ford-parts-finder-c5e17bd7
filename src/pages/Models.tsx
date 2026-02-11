@@ -1,5 +1,6 @@
-import { useState, useEffect } from "react";
-import { ChevronDown, ImagePlus } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
+import { ChevronDown, ImagePlus, X, ChevronLeft, ChevronRight } from "lucide-react";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import {
@@ -15,7 +16,30 @@ const Models = () => {
   const [models, setModels] = useState<FordModel[]>([]);
   const [photos, setPhotos] = useState<ModelPhoto[]>([]);
   const [openModels, setOpenModels] = useState<string[]>([]);
+  const [lightbox, setLightbox] = useState<{ photos: ModelPhoto[]; index: number } | null>(null);
 
+  const openLightbox = (modelPhotos: ModelPhoto[], index: number) => {
+    setLightbox({ photos: modelPhotos, index });
+  };
+
+  const closeLightbox = () => setLightbox(null);
+
+  const navigateLightbox = useCallback((dir: number) => {
+    if (!lightbox) return;
+    const newIndex = (lightbox.index + dir + lightbox.photos.length) % lightbox.photos.length;
+    setLightbox({ ...lightbox, index: newIndex });
+  }, [lightbox]);
+
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => {
+      if (!lightbox) return;
+      if (e.key === "ArrowLeft") navigateLightbox(-1);
+      if (e.key === "ArrowRight") navigateLightbox(1);
+      if (e.key === "Escape") closeLightbox();
+    };
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
+  }, [lightbox, navigateLightbox]);
   useEffect(() => {
     Promise.all([
       supabase.from("ford_models").select("*").order("sort_order"),
@@ -64,8 +88,12 @@ const Models = () => {
                     <div className="mt-2 p-6 bg-secondary/30 border border-border rounded-lg">
                       {modelPhotos.length > 0 ? (
                         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                          {modelPhotos.map((photo) => (
-                            <div key={photo.id} className="aspect-square rounded-lg overflow-hidden bg-card border border-border">
+                          {modelPhotos.map((photo, idx) => (
+                            <div
+                              key={photo.id}
+                              className="aspect-square rounded-lg overflow-hidden bg-card border border-border cursor-pointer hover:border-primary/50 transition-colors"
+                              onClick={() => openLightbox(modelPhotos, idx)}
+                            >
                               <img src={photo.photo_url} alt={model.name} className="w-full h-full object-cover" />
                             </div>
                           ))}
@@ -97,6 +125,51 @@ const Models = () => {
         </div>
       </section>
       <Footer />
+
+      {/* Lightbox */}
+      <Dialog open={!!lightbox} onOpenChange={() => closeLightbox()}>
+        <DialogContent className="max-w-[90vw] max-h-[90vh] p-0 bg-background/95 backdrop-blur-sm border-border overflow-hidden [&>button]:hidden">
+          {lightbox && (
+            <div className="relative flex items-center justify-center w-full h-full">
+              <button
+                onClick={closeLightbox}
+                className="absolute top-3 right-3 z-10 p-2 rounded-full bg-background/80 hover:bg-background text-foreground transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+
+              {lightbox.photos.length > 1 && (
+                <>
+                  <button
+                    onClick={() => navigateLightbox(-1)}
+                    className="absolute left-3 z-10 p-2 rounded-full bg-background/80 hover:bg-background text-foreground transition-colors"
+                  >
+                    <ChevronLeft className="w-6 h-6" />
+                  </button>
+                  <button
+                    onClick={() => navigateLightbox(1)}
+                    className="absolute right-3 z-10 p-2 rounded-full bg-background/80 hover:bg-background text-foreground transition-colors"
+                  >
+                    <ChevronRight className="w-6 h-6" />
+                  </button>
+                </>
+              )}
+
+              <img
+                src={lightbox.photos[lightbox.index].photo_url}
+                alt="Fotografie modelu"
+                className="max-w-full max-h-[85vh] object-contain"
+              />
+
+              {lightbox.photos.length > 1 && (
+                <div className="absolute bottom-3 text-sm text-muted-foreground">
+                  {lightbox.index + 1} / {lightbox.photos.length}
+                </div>
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
