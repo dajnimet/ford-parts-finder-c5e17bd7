@@ -16,6 +16,7 @@ const Models = () => {
   const [models, setModels] = useState<FordModel[]>([]);
   const [photos, setPhotos] = useState<ModelPhoto[]>([]);
   const [openModels, setOpenModels] = useState<string[]>([]);
+  const [openVariants, setOpenVariants] = useState<string[]>([]);
   const [lightbox, setLightbox] = useState<{ photos: ModelPhoto[]; index: number } | null>(null);
 
   const openLightbox = (modelPhotos: ModelPhoto[], index: number) => {
@@ -40,6 +41,7 @@ const Models = () => {
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
   }, [lightbox, navigateLightbox]);
+
   useEffect(() => {
     Promise.all([
       supabase.from("ford_models").select("*").order("sort_order"),
@@ -50,9 +52,37 @@ const Models = () => {
     });
   }, []);
 
+  const parentModels = models.filter(m => !m.parent_id);
+  const getVariants = (parentId: string) => models.filter(m => m.parent_id === parentId);
+
   const toggleModel = (id: string) => {
     setOpenModels(prev => prev.includes(id) ? prev.filter(n => n !== id) : [...prev, id]);
   };
+
+  const toggleVariant = (id: string) => {
+    setOpenVariants(prev => prev.includes(id) ? prev.filter(n => n !== id) : [...prev, id]);
+  };
+
+  const PhotoGrid = ({ modelPhotos, modelName }: { modelPhotos: ModelPhoto[]; modelName: string }) => (
+    modelPhotos.length > 0 ? (
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        {modelPhotos.map((photo, idx) => (
+          <div
+            key={photo.id}
+            className="aspect-square rounded-lg overflow-hidden bg-card border border-border cursor-pointer hover:border-primary/50 transition-colors"
+            onClick={() => openLightbox(modelPhotos, idx)}
+          >
+            <img src={photo.photo_url} alt={modelName} className="w-full h-full object-cover" />
+          </div>
+        ))}
+      </div>
+    ) : (
+      <div className="flex flex-col items-center justify-center py-8 text-center">
+        <ImagePlus className="w-12 h-12 text-muted-foreground/50 mb-3" />
+        <p className="text-muted-foreground text-sm">Zatím zde nejsou žádné fotografie</p>
+      </div>
+    )
+  );
 
   return (
     <div className="min-h-screen bg-background">
@@ -71,7 +101,8 @@ const Models = () => {
       <section className="py-16">
         <div className="container px-4">
           <div className="max-w-4xl mx-auto space-y-4">
-            {models.map((model) => {
+            {parentModels.map((model) => {
+              const variants = getVariants(model.id);
               const modelPhotos = photos.filter(p => p.model_id === model.id);
               return (
                 <Collapsible key={model.id} open={openModels.includes(model.id)} onOpenChange={() => toggleModel(model.id)}>
@@ -79,31 +110,49 @@ const Models = () => {
                     <div className="flex items-center justify-between p-6 bg-card border border-border rounded-lg hover:border-primary/50 transition-colors">
                       <div className="text-left">
                         <h3 className="text-2xl font-display text-foreground">{model.name}</h3>
-                        <p className="text-muted-foreground text-sm">{model.years}</p>
+                        <p className="text-muted-foreground text-sm">
+                          {model.years}
+                          {variants.length > 0 && ` · ${variants.length} variant`}
+                        </p>
                       </div>
                       <ChevronDown className={`w-6 h-6 text-primary transition-transform duration-200 ${openModels.includes(model.id) ? "rotate-180" : ""}`} />
                     </div>
                   </CollapsibleTrigger>
                   <CollapsibleContent>
-                    <div className="mt-2 p-6 bg-secondary/30 border border-border rounded-lg">
-                      {modelPhotos.length > 0 ? (
-                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                          {modelPhotos.map((photo, idx) => (
-                            <div
-                              key={photo.id}
-                              className="aspect-square rounded-lg overflow-hidden bg-card border border-border cursor-pointer hover:border-primary/50 transition-colors"
-                              onClick={() => openLightbox(modelPhotos, idx)}
-                            >
-                              <img src={photo.photo_url} alt={model.name} className="w-full h-full object-cover" />
-                            </div>
-                          ))}
-                        </div>
-                      ) : (
-                        <div className="flex flex-col items-center justify-center py-12 text-center">
-                          <ImagePlus className="w-16 h-16 text-muted-foreground/50 mb-4" />
-                          <p className="text-muted-foreground">Zatím zde nejsou žádné fotografie</p>
-                        </div>
+                    <div className="mt-2 p-6 bg-secondary/30 border border-border rounded-lg space-y-4">
+                      {/* Parent model photos */}
+                      {modelPhotos.length > 0 && (
+                        <PhotoGrid modelPhotos={modelPhotos} modelName={model.name} />
                       )}
+
+                      {/* Variants */}
+                      {variants.length > 0 ? (
+                        <div className="space-y-3">
+                          {variants.map((variant) => {
+                            const variantPhotos = photos.filter(p => p.model_id === variant.id);
+                            return (
+                              <Collapsible key={variant.id} open={openVariants.includes(variant.id)} onOpenChange={() => toggleVariant(variant.id)}>
+                                <CollapsibleTrigger className="w-full">
+                                  <div className="flex items-center justify-between p-4 bg-card/50 border border-border rounded-lg hover:border-primary/30 transition-colors">
+                                    <div className="text-left">
+                                      <h4 className="text-lg font-display text-foreground">{variant.name}</h4>
+                                      <p className="text-muted-foreground text-xs">{variant.years}</p>
+                                    </div>
+                                    <ChevronDown className={`w-5 h-5 text-primary transition-transform duration-200 ${openVariants.includes(variant.id) ? "rotate-180" : ""}`} />
+                                  </div>
+                                </CollapsibleTrigger>
+                                <CollapsibleContent>
+                                  <div className="mt-1 p-4 bg-secondary/20 border border-border/50 rounded-lg">
+                                    <PhotoGrid modelPhotos={variantPhotos} modelName={variant.name} />
+                                  </div>
+                                </CollapsibleContent>
+                              </Collapsible>
+                            );
+                          })}
+                        </div>
+                      ) : modelPhotos.length === 0 ? (
+                        <PhotoGrid modelPhotos={[]} modelName={model.name} />
+                      ) : null}
                     </div>
                   </CollapsibleContent>
                 </Collapsible>

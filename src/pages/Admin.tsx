@@ -90,6 +90,16 @@ const Admin = () => {
     if (!error) loadAll();
   };
 
+  const addVariant = async (parentId: string) => {
+    const { error } = await supabase.from("ford_models").insert({
+      name: "Nová varianta",
+      years: "20XX - 20XX",
+      parent_id: parentId,
+      sort_order: models.filter(m => m.parent_id === parentId).length,
+    });
+    if (!error) loadAll();
+  };
+
   const deleteModel = async (id: string) => {
     await supabase.from("ford_models").delete().eq("id", id);
     loadAll();
@@ -229,33 +239,78 @@ const Admin = () => {
           {/* MODELS */}
           <TabsContent value="models" className="space-y-4">
             <Button onClick={addModel}><Plus className="h-4 w-4 mr-2" /> Přidat model</Button>
-            {models.map(model => (
-              <div key={model.id} className="border border-border rounded-lg p-4 space-y-3">
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <Label>Název</Label>
-                    <Input value={model.name} onChange={e => updateModel(model.id, "name", e.target.value)} />
+            {models.filter(m => !m.parent_id).map(model => {
+              const variants = models.filter(m => m.parent_id === model.id);
+              return (
+                <div key={model.id} className="border border-border rounded-lg p-4 space-y-3">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <Label>Název</Label>
+                      <Input value={model.name} onChange={e => updateModel(model.id, "name", e.target.value)} />
+                    </div>
+                    <div>
+                      <Label>Roky</Label>
+                      <Input value={model.years} onChange={e => updateModel(model.id, "years", e.target.value)} />
+                    </div>
                   </div>
                   <div>
-                    <Label>Roky</Label>
-                    <Input value={model.years} onChange={e => updateModel(model.id, "years", e.target.value)} />
+                    <Label>Fotky (hlavní model)</Label>
+                    <MultiPhotoUpload
+                      photos={modelPhotos.filter(p => p.model_id === model.id).map(p => ({ id: p.id, url: p.photo_url }))}
+                      folder={`models/${model.id}`}
+                      onAdded={url => addModelPhoto(model.id, url)}
+                      onRemoved={removeModelPhoto}
+                    />
+                  </div>
+                  <div className="flex gap-2">
+                    <Button size="sm" onClick={() => saveModel(model)}><Save className="h-4 w-4 mr-1" /> Uložit</Button>
+                    <Button size="sm" variant="destructive" onClick={() => deleteModel(model.id)}><Trash2 className="h-4 w-4 mr-1" /> Smazat</Button>
+                  </div>
+
+                  {/* Sub-models / variants */}
+                  <div className="border-t border-border pt-3 mt-3">
+                    <div className="flex items-center justify-between mb-2">
+                      <Label className="text-sm font-semibold">Varianty / podmodely</Label>
+                      <Button size="sm" variant="outline" onClick={() => addVariant(model.id)}>
+                        <Plus className="h-3 w-3 mr-1" /> Přidat variantu
+                      </Button>
+                    </div>
+                    {variants.length === 0 && (
+                      <p className="text-xs text-muted-foreground">Žádné varianty. Přidejte první.</p>
+                    )}
+                    <div className="space-y-3 ml-4">
+                      {variants.map(variant => (
+                        <div key={variant.id} className="border border-border/50 rounded-lg p-3 bg-secondary/20 space-y-2">
+                          <div className="grid grid-cols-2 gap-2">
+                            <div>
+                              <Label className="text-xs">Název</Label>
+                              <Input value={variant.name} onChange={e => updateModel(variant.id, "name", e.target.value)} className="h-8 text-sm" />
+                            </div>
+                            <div>
+                              <Label className="text-xs">Roky</Label>
+                              <Input value={variant.years} onChange={e => updateModel(variant.id, "years", e.target.value)} className="h-8 text-sm" />
+                            </div>
+                          </div>
+                          <div>
+                            <Label className="text-xs">Fotky</Label>
+                            <MultiPhotoUpload
+                              photos={modelPhotos.filter(p => p.model_id === variant.id).map(p => ({ id: p.id, url: p.photo_url }))}
+                              folder={`models/${variant.id}`}
+                              onAdded={url => addModelPhoto(variant.id, url)}
+                              onRemoved={removeModelPhoto}
+                            />
+                          </div>
+                          <div className="flex gap-2">
+                            <Button size="sm" variant="outline" onClick={() => saveModel(variant)}><Save className="h-3 w-3 mr-1" /> Uložit</Button>
+                            <Button size="sm" variant="destructive" onClick={() => deleteModel(variant.id)}><Trash2 className="h-3 w-3 mr-1" /> Smazat</Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </div>
-                <div>
-                  <Label>Fotky</Label>
-                  <MultiPhotoUpload
-                    photos={modelPhotos.filter(p => p.model_id === model.id).map(p => ({ id: p.id, url: p.photo_url }))}
-                    folder={`models/${model.id}`}
-                    onAdded={url => addModelPhoto(model.id, url)}
-                    onRemoved={removeModelPhoto}
-                  />
-                </div>
-                <div className="flex gap-2">
-                  <Button size="sm" onClick={() => saveModel(model)}><Save className="h-4 w-4 mr-1" /> Uložit</Button>
-                  <Button size="sm" variant="destructive" onClick={() => deleteModel(model.id)}><Trash2 className="h-4 w-4 mr-1" /> Smazat</Button>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </TabsContent>
 
           {/* SERVICES */}

@@ -19,6 +19,7 @@ export type Database = {
           created_at: string | null
           id: string
           name: string
+          parent_id: string | null
           sort_order: number | null
           years: string
         }
@@ -26,6 +27,7 @@ export type Database = {
           created_at?: string | null
           id?: string
           name: string
+          parent_id?: string | null
           sort_order?: number | null
           years: string
         }
@@ -33,10 +35,19 @@ export type Database = {
           created_at?: string | null
           id?: string
           name?: string
+          parent_id?: string | null
           sort_order?: number | null
           years?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "ford_models_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "ford_models"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       model_photos: {
         Row: {
