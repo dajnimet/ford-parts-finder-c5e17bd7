@@ -18,7 +18,7 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
-      <BrowserRouter>
+      <BrowserRouter basename="/ford-parts-finder-c5e17bd7">
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/nahradni-dily" element={<NahradniDily />} />
