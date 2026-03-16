@@ -5,6 +5,7 @@ import { componentTagger } from "lovable-tagger";
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
+ base: "/ford-parts-finder-c5e17bd7/",
   server: {
     host: "::",
     port: 8080,
